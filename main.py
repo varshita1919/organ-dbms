@@ -3,25 +3,26 @@ import mysql.connector,hashlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+
 mydb = mysql.connector.connect(
   host='localhost',
   user='root',
-  password='your_password',
+  password='varshita1979',
   database = 'DBMS_PROJECT'
 )
 mycursor = mydb.cursor(buffered=True)
 
 app = Flask(__name__)
-
-@app.route("/",methods = ['POST', 'GET'])
-@app.route("/home",methods = ['POST','GET'])
+@app.route("/", methods=['POST', 'GET'])
+@app.route("/home", methods=['POST', 'GET'])
 def home():
     if not session.get('login'):
-        return render_template('login.html'),401
+        return redirect(url_for('login'))  # Redirect to login page
     else:
-        if session.get('isAdmin') :
-            return render_template('home.html',username=session.get('username'))
-        else :
+        if session.get('isAdmin'):
+            return render_template('home.html', username=session.get('username'))
+        else:
             return home_student()
 
 @app.route("/login",methods = ['GET','POST'])
@@ -41,6 +42,10 @@ def login():
             session['isAdmin'] = (request.form['username']=='admin')
             return home()
     return render_template('login.html')
+
+
+
+
 
 @app.route("/show_update_detail",methods=['POST','GET'])
 def show_update_detail():
@@ -65,6 +70,7 @@ def show_update_detail():
         if(mycursor.rowcount > 0):
             upd_res = mycursor.fetchone()
         fields_upd = mycursor.column_names
+        
         mycursor.execute(qry1)
         phone_no = mycursor.fetchall()
         qry_pat = "select Patient_ID, organ_req, reason_of_procurement, Doctor_name from Patient inner join Doctor on Doctor.Doctor_ID = Patient.Doctor_ID and User_ID = %s" %(request.form['User_ID'])
@@ -1069,7 +1075,7 @@ def stats():
         B.append(Patient[1])
     plt.pie(B, labels = A)
     plt.savefig('./static/Patient_stat.jpeg')
-    # plt.show()
+    plt.show()
     plt.close()
     qry = "select distinct Organ_donated from Transaction inner join Donor on Transaction.Donor_ID = Donor.Donor_ID"
     mycursor.execute(qry)
@@ -1112,4 +1118,4 @@ def stats():
 if __name__ == "__main__":
     app.secret_key = 'sec key'
     app.config['SESSION_TYPE'] = 'filesystem'
-    app.run(debug=True)
+    app.run(debug=True,host='127.0.0.1', port=5000)
